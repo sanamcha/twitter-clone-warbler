@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g, 
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
-from forms import UserAddForm, LoginForm, MessageForm, UserEditForm
+from forms import UserAddForm, LoginForm, MessageForm, UserEditForm, LikeAddForm
 from models import db, connect_db, User, Message
 
 
@@ -129,6 +129,9 @@ def logout():
 ##############################################################################
 # General user routes:
 
+   
+
+
 @app.route('/users')
 def list_users():
     """Page with listing of users.
@@ -233,7 +236,7 @@ def show_likes(user_id):
 # added #######################################
 @app.route('/messages/<int:message_id>/like', methods=['POST'])
 def add_like(message_id):
-    """Toggle a liked message for the currently-logged-in user."""
+    """add liked message for the currently-logged-in user."""
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -410,3 +413,24 @@ def add_header(req):
     req.headers["Expires"] = "0"
     req.headers['Cache-Control'] = 'public, max-age=0'
     return req
+
+
+# like page ######
+@app.route('/likes/<int:message_id>', methods=["POST"])
+def likes_create_or_remove(message_id):
+    """ Create a like if currently not liked. Otherwise, remove like. """
+
+    message = Message.query.get(message_id)
+    form = LikeAddForm()
+
+    # Prevent user from liking their own posts.
+    if message.user_id == g.user.id:
+        return redirect(f"/users/{g.user.id}")
+   
+    if form.validate_on_submit():
+        if message not in g.user.liked_messages:
+            g.user.liked_messages.append(message)
+        else:
+            g.user.liked_messages.remove(message)
+        db.session.commit()
+    return redirect("/")

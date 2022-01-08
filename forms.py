@@ -36,3 +36,11 @@ class UserEditForm(FlaskForm):
     bio = TextAreaField('(Optional) Tell us about yourself')
     password = PasswordField('Password', validators=[Length(min=6)])
     location = StringField("Location", validators=[DataRequired()])
+
+
+class UserLogoutForm(FlaskForm):
+    """ Form for user logout """
+
+    
+class LikeAddForm(FlaskForm):
+    """ Form for adding a like """
